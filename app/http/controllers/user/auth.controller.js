@@ -11,7 +11,16 @@ module.exports = new class AuthController extends Controller{
             const user = await authSchema.validateAsync(req.body);
             const {mobile} = req.body;
             const code = randomNumberGenerator();
-            return res.status(200).send("User is logged in successfuly")
+            const result = await this.saveUser(mobile , code);
+            if(!result) throw createHttpError.Unauthorized("اعتبار سنجی انجام نشد")
+            return res.status(200).send({
+                data : {
+                    statusCode : 200 ,
+                    message : "کد با موفقیت برای تلفن شما ارسال شد" ,
+                    code ,
+                    mobile
+                }
+            })
         } catch (error) {
             next(createHttpError.BadRequest(error.message))
         }
@@ -19,13 +28,13 @@ module.exports = new class AuthController extends Controller{
 
     async saveUser(mobile , code){
         const now = (new Date().getTime());
-        const otp = {
+        let otp = {
             code , 
             expiresAt : now + 120000
         }
         const result = await this.checkExistingUser(mobile);
         if(result) {
-            await updateUser(mobile , otp)
+            await this.updateUser(mobile , {otp})
         }
         return !!(await UserModel.create({mobile , otp ,  role : [ROLES.USER] }));
     }
