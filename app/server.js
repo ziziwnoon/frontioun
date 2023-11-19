@@ -29,7 +29,7 @@ module.exports = class Application{
         //ارسال اطلاعات از طریق www-form
         this.#app.use(express.urlencoded({extended : true}))
         this.#app.use(express.static(path.join(__dirname , '..' , 'public')))
-        this.#app.use("/api-doc" , swaggerUI.serve() , swaggerUI.setup(swaggerJsDoc({
+        this.#app.use("/api-doc" , swaggerUI.serve , swaggerUI.setup(swaggerJsDoc({
             definition : {
                 info : {
                     title : "Frontioun" ,
@@ -42,7 +42,7 @@ module.exports = class Application{
                     }
                 ]
             } ,
-            apis : [ "/routers/*/*.js" ]
+            apis : [ "./app/routers/**/*.js" ]
         })))
     }
 
