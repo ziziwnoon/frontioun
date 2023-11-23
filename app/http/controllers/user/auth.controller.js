@@ -1,14 +1,14 @@
 const createHttpError = require("http-errors");
-const { randomNumberGenerator } = require("../../../utils/functions");
-const { authSchema } = require("../../validators/user/auth.schema");
+const { randomNumberGenerator, signAccessToken } = require("../../../utils/functions");
+const { authSchema, getOtpSchema, checkOtpSchema } = require("../../validators/user/auth.schema");
 const { UserModel } = require("./../../../models/users")
 const Controller = require("../controller");
-const {ROLES} = require("../../../utils/constants");
+const { ROLES } = require("../../../utils/constants");
 
 module.exports = new class AuthController extends Controller{
-    async login(req , res , next){
+    async getOtp(req , res , next){
         try {
-            const user = await authSchema.validateAsync(req.body);
+            await getOtpSchema.validateAsync(req.body);
             const {mobile} = req.body;
             const code = randomNumberGenerator();
             const result = await this.saveUser(mobile , code);
@@ -26,11 +26,35 @@ module.exports = new class AuthController extends Controller{
         }
     }
 
+    async checkOtp(req, res , next){
+        try {
+            await checkOtpSchema.validateAsync(req.body);
+            const {mobile , code} = req.body;
+            const user = await UserModel.findOne({mobile});
+            if(!user) throw createHttpError.Unauthorized("اطلاعات وارد شده صحیح نمیباشد")
+            if(user.otp.code != code ) throw createHttpError.Unauthorized("کد وارد شده اشتباه است")
+            const now = Date.now();
+            if(+user.otp.expiresIn < now) throw createHttpError.Unauthorized("کد وارد شده منقضی شده است");
+            const accessToken = await signAccessToken(user._id);
+            return res.json({
+                data : {
+                    accessToken
+                }
+            })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+
+
+
+
     async saveUser(mobile , code){
         const now = (new Date().getTime());
         let otp = {
             code , 
-            expiresAt : now + 120000
+            expiresIn : now + 120000
         }
         const result = await this.checkExistingUser(mobile);
         if(result) {

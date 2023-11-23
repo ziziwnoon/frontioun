@@ -13,6 +13,11 @@ const router = require('express').Router();
  *      summary: Index page
  *      tags: [IndexPage]
  *      description: Get all neccessary data of index page
+ *      parameters:
+ *          -   name: access-token
+ *              in: header
+ *              required: true
+ *              type: string
  *      responses:
  *          200: 
  *              description: Success

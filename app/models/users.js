@@ -5,12 +5,12 @@ const Schema = new mongoose.Schema({
     last_name : {type : String},
     username : {type : String  , lowercase : true},
     email : {type : String , lowercase : true},
-    mobile : {type : String , required : true , unique : true },
+    mobile : {type : String , required : true },
     role : {type : [String] , default : ['USER'] },
     password : {type : String },
     otp : {type : Object , default : {
         code : 0 ,
-        expiresAt : 0 
+        expiresIn : 0 
     }},
     discount : {type : Number , default : 0 },
     birthday : {type : String }
