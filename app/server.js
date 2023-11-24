@@ -2,6 +2,7 @@ const express = require('express')
 const { default: mongoose } = require('mongoose');
 const morgan = require('morgan');
 const path = require('path');
+const cors = require('cors'); 
 const { AllRoutes } = require('./routers/router');
 const CreateHttpError = require('http-errors');
 const swaggerUI = require('swagger-ui-express');
@@ -16,6 +17,7 @@ module.exports = class Application{
         this.#DB_URI = DB_URI;
         this.#PORT = PORT;
         this.configApplication();
+        this.initRedis();
         this.connectToMongoDB();
         this.configServer();
         this.createRoutes();
@@ -23,6 +25,7 @@ module.exports = class Application{
     }
 
     configApplication(){
+        this.#app.use(cors())
         this.#app.use(morgan('dev'))
         //ارسال اطلاعات از طریق جیسون
         this.#app.use(express.json());
@@ -64,6 +67,11 @@ module.exports = class Application{
             process.exit(0);
         })
     }
+
+    initRedis(){
+        require("./utils/init-redis")
+    }
+
 
     createRoutes(){
         this.#app.use(AllRoutes)
