@@ -47,11 +47,14 @@ function verifyRefreshToken(token ){
     return new Promise((resolve , reject) => {
         JWT.verify(token , REFRESH_TOKEN_SECRET_KEY , async (err , payload) => {
             if(err) reject(createHttpError.Unauthorized("لطفا وازد حساب کاربری خود شوید"));
-            const {mobile} = payload;
+            const {mobile} = payload || {};
             const user = await UserModel.findOne({mobile} , {password : 0 , otp : 0});
             if(!user) return next(createHttpError.NotFound("حساب کاربری یافت نشد!"))
-            const refreshToken = await redisClient.get(user._id);
-            if(token === refreshToken) return resolve(mobile);
+            console.log(String(user?._id));
+            const refreshToken = await redisClient.v4.get(String(user?._id))
+            console.log(refreshToken);
+            if(!refreshToken) reject(createHttpError.Unauthorized("اعتبار سنجی انجام نشد مجددا وارد حساب خود شوید"))
+            if(token == refreshToken) return resolve(mobile);
             reject(createHttpError.Unauthorized("اعتبار سنجی انجام نشد مجددا وارد حساب خود شوید"))
         })
     })   
