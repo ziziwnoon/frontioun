@@ -9,11 +9,11 @@ module.exports = new class AuthController extends Controller{
     async getOtp(req , res , next){
         try {
             await getOtpSchema.validateAsync(req.body);
-            const {mobile} = req.body;
+            const {mobile} = req.params;
             const code = randomNumberGenerator();
             const result = await this.saveUser(mobile , code);
             if(!result) throw createHttpError.Unauthorized("اعتبار سنجی انجام نشد")
-            return res.status(200).send({
+            return res.status(200).json({
                 data : {
                     statusCode : 200 ,
                     message : "کد با موفقیت برای تلفن شما ارسال شد" ,
@@ -29,7 +29,7 @@ module.exports = new class AuthController extends Controller{
     async checkOtp(req, res , next){
         try {
             await checkOtpSchema.validateAsync(req.body);
-            const {mobile , code} = req.body;
+            const {mobile , code} = req.params;
             const user = await UserModel.findOne({mobile});
             if(!user) throw createHttpError.Unauthorized("اطلاعات وارد شده صحیح نمیباشد")
             if(user.otp.code != code ) throw createHttpError.Unauthorized("کد وارد شده اشتباه است")
@@ -76,7 +76,8 @@ module.exports = new class AuthController extends Controller{
         }
         const result = await this.checkExistingUser(mobile);
         if(result) {
-            await this.updateUser(mobile , {otp})
+            return (await this.updateUser(mobile , {otp}))
+            console.log("saveUser");
         }
         return !!(await UserModel.create({mobile , otp ,  role : [ROLES.USER] }));
     }
@@ -91,7 +92,8 @@ module.exports = new class AuthController extends Controller{
             if(["" , " " , 0 , null , NaN , "0" , undefined , "."].includes(dataObject[key])) delete dataObject[key]
         })
 
-        const updatedResult = await UserModel.updateOne({mobile} , dataObject)
+        const updatedResult = await UserModel.updateOne({mobile} , {$set : dataObject})
+        console.log("update user");
         return !!updatedResult.modifiedCount
     }
 }

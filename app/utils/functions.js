@@ -3,6 +3,8 @@ const JWT = require('jsonwebtoken');
 const { UserModel } = require('../models/users');
 const { ACCESS_TOKEN_SECRET_KEY, REFRESH_TOKEN_SECRET_KEY } = require('./constants');
 const redisClient = require('./init-redis');
+const fs = require('fs')
+const path = require('path')
 
 function randomNumberGenerator(){
     return Math.floor((Math.random() * 90000) + 10000)
@@ -49,10 +51,8 @@ function verifyRefreshToken(token ){
             if(err) reject(createHttpError.Unauthorized("لطفا وازد حساب کاربری خود شوید"));
             const {mobile} = payload || {};
             const user = await UserModel.findOne({mobile} , {password : 0 , otp : 0});
-            if(!user) return next(createHttpError.NotFound("حساب کاربری یافت نشد!"))
-            console.log(String(user?._id));
-            const refreshToken = await redisClient.v4.get(String(user?._id))
-            console.log(refreshToken);
+            if(!user) return reject(createHttpError.NotFound("حساب کاربری یافت نشد!"))
+            const refreshToken = await redisClient.v4.get(String(user?._id) || "key_default")
             if(!refreshToken) reject(createHttpError.Unauthorized("اعتبار سنجی انجام نشد مجددا وارد حساب خود شوید"))
             if(token == refreshToken) return resolve(mobile);
             reject(createHttpError.Unauthorized("اعتبار سنجی انجام نشد مجددا وارد حساب خود شوید"))
@@ -60,9 +60,18 @@ function verifyRefreshToken(token ){
     })   
 }
 
+
+function deleteFileInPublic(fileAddress){
+    if(fileAddress){
+        const filePath = path.join(__dirname , ".." , ".." , "public" , fileAddress)
+        if(fs.existsSync(filePath)) fs.unlinkSync(filePath)
+    }
+}
+
 module.exports = {
     randomNumberGenerator ,
     signAccessToken,
     verifyRefreshToken,
-    signRefreshToken
+    signRefreshToken,
+    deleteFileInPublic
 }

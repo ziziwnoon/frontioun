@@ -13,9 +13,13 @@ const Schema = new mongoose.Schema({
         expiresIn : 0 
     }},
     discount : {type : Number , default : 0 },
+    bills : {type : Number , default : 0 },
     birthday : {type : String }
 } , {
-    timestamps : true
+    timestamps : true,
+    toJSON : {
+        virtuals : true
+    }
 })
 
 module.exports = {

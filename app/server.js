@@ -7,6 +7,7 @@ const { AllRoutes } = require('./routers/router');
 const CreateHttpError = require('http-errors');
 const swaggerUI = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
+const bodyParser = require('body-parser');
 
 module.exports = class Application{
     #app = express();
@@ -31,9 +32,13 @@ module.exports = class Application{
         this.#app.use(express.json());
         //ارسال اطلاعات از طریق www-form
         this.#app.use(express.urlencoded({extended : true}))
+        this.#app.use(bodyParser.json());
+        this.#app.use(bodyParser.urlencoded({extended: true,}),);
         this.#app.use(express.static(path.join(__dirname , '..' , 'public')))
-        this.#app.use("/api-doc" , swaggerUI.serve , swaggerUI.setup(swaggerJsDoc({
-            definition : {
+        this.#app.use("/api-doc" , swaggerUI.serve , swaggerUI.setup(
+            swaggerJsDoc({
+                swaggerDefinition : {
+                openapi : "3.0.0" ,
                 info : {
                     title : "Frontioun" ,
                     version : "1.0.0" ,
@@ -43,10 +48,29 @@ module.exports = class Application{
                     {
                         url : "http://localhost:3000"
                     }
-                ]
-            } ,
+                ] ,
+                
+                components : {
+                    securitySchemes : {
+                      BearerAuth : {
+                        type: "http",
+                        scheme: "bearer",
+                        bearerFormat: "JWT",
+                        
+                      }
+                    }
+                  },
+                  security : [{BearerAuth : [] }]
+                },
             apis : [ "./app/routers/**/*.js" ]
-        })))
+        })
+        ,
+        {
+            explorer : true ,
+            
+        },
+        
+        ))
     }
 
     configServer(){

@@ -1,25 +1,63 @@
 const authController = require('../../http/controllers/user/auth.controller');
 
 const router = require('express').Router();
+
+/**
+ * @swagger
+ *  components:
+ *      schemas:
+ *          GetOTP:
+ *              type: object
+ *              required:
+ *                  -   mobile
+ *              properties:
+ *                  mobile:
+ *                      type: string
+ *                      description: the user's mobile for sign up or sign in
+ *          CheckOTP:
+ *              type: object
+ *              required:
+ *                  -   mobile
+ *                  -   code
+ *              properties:
+ *                  mobile:
+ *                      type: string
+ *                      description: the user's mobile for sign up or sign in
+ *                  code:
+ *                      type: integer
+ *                      description: the user's code for getting access token
+ *          RefreshToken:
+ *              type: object
+ *              required:
+ *                  -   refreshToken
+ *              properties:
+ *                  refreshToken:
+ *                      type: string
+ *                      description: the user's refresh token for getting a new refresh token
+ */
+
 /**
  * @swagger
  * tags:
  *  name: User-Authentication
  *  description: Routes of User Authentication
  */
-/**
+/** 
  * @swagger
- * /user/get-otp:
+ * /user/get-otp/{mobile}:
  *  post:
- *      summary: Get OTP page
+ *      summary: Add category
  *      tags: [User-Authentication]
- *      description: OTP Login with phone number
- *      parameters:
- *          -   name: mobile
- *              description: FA-IRI phone number
- *              in: formData
- *              required: true
- *              type: string
+ *      description: add category title and parent
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/x-www-form-urlencoded:
+ *                  schema:
+ *                      $ref: "#/components/schemas/GetOTP"
+ *              application/json:
+ *                  schema:
+ *                      $ref: "#/components/schemas/GetOTP"
  *      responses:
  *          201: 
  *              description: Success
@@ -30,27 +68,25 @@ const router = require('express').Router();
  *          500:
  *              description: Internal Server Error
  */
-router.post("/get-otp" , authController.getOtp);
+router.post("/get-otp/:mobile" , authController.getOtp);
 
 
 /**
  * @swagger
- * /user/check-otp:
+ * /user/check-otp/{mobile}/{code}:
  *  post:
  *      summary: Check OTP 
  *      tags: [User-Authentication]
  *      description: Checking entered OTP Login
- *      parameters:
- *          -   name: mobile
- *              description: FA-IRI phone number
- *              in: formData
- *              required: true
- *              type: string
- *          -   name: code
- *              description: otp code
- *              in: formData
- *              required: true
- *              type: string
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/x-www-form-urlencoded:
+ *                  schema:
+ *                      $ref: "#/components/schemas/CheckOTP"
+ *              application/json:
+ *                  schema:
+ *                      $ref: "#/components/schemas/CheckOTP"
  *      responses:
  *          201: 
  *              description: Success
@@ -61,7 +97,7 @@ router.post("/get-otp" , authController.getOtp);
  *          500:
  *              description: Internal Server Error
  */
- router.post("/check-otp" , authController.checkOtp);
+ router.post("/check-otp/:mobile/:code" , authController.checkOtp);
 
 /**
  * @swagger
@@ -70,12 +106,15 @@ router.post("/get-otp" , authController.getOtp);
  *      summary: get refresh token
  *      tags: [User-Authentication]
  *      description: new refresh token
- *      parameters:
- *          -   name: refreshToken
- *              description: cuurent refresh token
- *              in: body
- *              required: true
- *              type: string
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/x-www-form-urlencoded:
+ *                  schema:
+ *                      $ref: "#/components/schemas/RefreshToken"
+ *              application/json:
+ *                  schema:
+ *                      $ref: "#/components/schemas/RefreshToken"
  *      responses:
  *          201: 
  *              description: Success
